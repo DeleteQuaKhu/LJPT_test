@@ -7,11 +7,12 @@ JLPT N2 practice quiz — a modular web app: one `index.html` (UI + logic) plus 
 
 ```
 LJPT_test/
-└── N2/
-    ├── index.html        # App shell: UI + logic (EXAM_FILES, JLPT_REGISTER)
-    ├── data_2023_07.js   # JLPT N2 — 2023年7月 (07/2023)
-    ├── data_2023_12.js   # JLPT N2 — 2023年12月 (12/2023)
-    └── data_2022_12.js   # JLPT N2 — 2022年12月 (12/2022)
+├── N2/
+│   ├── index.html        # App shell: UI + logic (EXAM_FILES, JLPT_REGISTER)
+│   ├── data_2023_07.js   # JLPT N2 — 2023年7月 (07/2023)
+│   ├── data_2023_12.js   # JLPT N2 — 2023年12月 (12/2023)
+│   └── data_2022_12.js   # JLPT N2 — 2022年12月 (12/2022)
+└── pdf_data/             # Source exam PDFs (not read by the app)
 ```
 
 ## Usage
