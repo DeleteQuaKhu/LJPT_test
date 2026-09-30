@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JLPT N2 対策クイズ | Luyện thi N2</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{ color-scheme: dark; }
+  body{ font-family:'Be Vietnam Pro','Noto Sans JP',sans-serif; background:#020617; }
+  .jpn{ font-family:'Noto Sans JP',sans-serif; }
+  u{ text-decoration-color:#fbbf24; text-decoration-thickness:2px; text-underline-offset:3px; }
+  .explain-box{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .4s ease; }
+  .explain-box.open{ grid-template-rows:1fr; }
+  .explain-inner{ overflow:hidden; }
+  .opt-btn{ transition:all .15s ease; cursor:pointer; }
+  .opt-btn:hover:not(:disabled){ border-color:#38bdf8; background:rgba(56,189,248,.08); }
+  .opt-btn:disabled{ cursor:not-allowed; }
+  .tab-btn{ transition:all .2s ease; }
+  .tab-btn.active{ background:linear-gradient(135deg,rgba(250,204,21,.15),rgba(34,211,238,.12)); border-color:#facc15; color:#fde047; }
+  .tab-btn .cnt{ background:rgba(148,163,184,.15); }
+  .tab-btn.active .cnt{ background:rgba(250,204,21,.2); }
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-thumb{ background:#334155; border-radius:8px; }
+  table.info-tbl{ border-collapse:collapse; width:100%; }
+  table.info-tbl th, table.info-tbl td{ border:1px solid #334155; padding:.5rem .75rem; font-size:.85rem; }
+  table.info-tbl th{ background:#1e293b; color:#fbbf24; text-align:left; }
+</style>
+</head>
+<body class="min-h-screen text-slate-100 antialiased">
+
+<header class="sticky top-0 z-40 backdrop-blur-xl bg-slate-950/80 border-b border-slate-800">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-cyan-500 flex items-center justify-center font-black text-slate-950 text-sm">N2</div>
+      <div>
+        <h1 class="font-bold text-sm sm:text-base tracking-wide">JLPT N2 対策クイズ</h1>
+        <p id="examTitle" class="text-[11px] text-slate-400">Đang tải…</p>
+      </div>
+    </div>
+    <div class="ml-auto flex flex-wrap items-center gap-2">
+      <label for="examSelect" class="text-[11px] text-slate-400 uppercase tracking-wider">Đề thi</label>
+      <select id="examSelect" class="bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-400 cursor-pointer"></select>
+      <span id="globalScore" class="text-xs bg-slate-800/80 border border-slate-700 rounded-full px-3 py-1.5">🏆 0/0 · 0%</span>
+      <button id="resetAll" class="text-xs bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-lg px-3 py-1.5 transition">↺ Đặt lại</button>
+    </div>
+  </div>
+  <div class="h-[3px] bg-slate-800"><div id="prog" class="h-full bg-gradient-to-r from-amber-400 to-cyan-400" style="width:0%"></div></div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-6">
+  <div id="tabBar" class="flex flex-wrap gap-2 mb-6"></div>
+  <div id="listenNote" class="hidden mb-6 text-xs text-slate-400 bg-slate-800/40 border border-slate-700/60 rounded-xl px-4 py-3">
+    🎧 <b class="text-amber-300">Lưu ý phần 聴解:</b> File đề không chứa file audio. Các câu nghe hiển thị lựa chọn in trên giấy (nếu có) kèm đáp án theo bảng đáp án trong file; vị trí thiếu được đánh dấu <span class="text-rose-300">⚠️ THIẾU DỮ LIỆU TRONG FILE</span>.
+  </div>
+  <div id="tabContent"></div>
+</main>
+
+<footer class="max-w-6xl mx-auto px-4 pb-10 text-[11px] text-slate-500 leading-relaxed">
+  ⚠️ Toàn bộ câu hỏi &amp; đáp án được trích nguyên văn từ các file đề JLPT N2 do người dùng cung cấp (nguồn duy nhất).
+  Bản dịch &amp; giải thích tiếng Việt do AI thực hiện nhằm hỗ trợ ôn tập.
+  <br>Kiến trúc: <code>index.html</code> (UI/logic) + <code>data_YYYY_MM.js</code> (dữ liệu từng đề, tự đăng ký qua <code>JLPT_REGISTER()</code>).
+</footer>
+
+<!-- ============================================================
+     (TUỲ CHỌN) NHÚNG TRỰC TIẾP FILE DỮ LIỆU:
+     Nếu chạy offline hoặc trình duyệt chặn nạp file .js bên ngoài,
+     hãy mở comment các dòng dưới đây (đặt đúng thư mục):
+     <script src="data_2023_07.js"></script>
+     <script src="data_2023_12.js"></script>
+     <script src="data_2022_07.js"></script>
+     <script src="data_2022_12.js"></script>
+     <script src="data_2021_12.js"></script>
+     ============================================================ -->
+
+<script>
+/* =========================================================================
+   JLPT N2 QUIZ — CORE (index.html)
+   -------------------------------------------------------------------------
+   • EXAM_FILES : danh sách đề hiển thị trong dropdown (id / label / file).
+   • Mỗi file data_YYYY_MM.js chỉ cần gọi:  JLPT_REGISTER({metadata, data})
+   • Không cần sửa gì trong file này khi thêm đề mới — chỉ thêm 1 dòng
+     vào EXAM_FILES và tạo file data tương ứng.
+   ========================================================================= */
+
+const TABS = ["文字・語彙","用法","文法","読解","聴解"];
+const LETTERS = ["①","②","③","④"];
+
+/* ==== 1. DANH SÁCH ĐỀ THI (thêm đề mới ở đây) ==== */
+const EXAM_FILES = [
+  { id:"n2_2023_07", label:"07/2023", file:"data_2023_07.js" },
+  { id:"n2_2023_12", label:"12/2023", file:"data_2023_12.js" },
+  { id:"n2_2022_07", label:"07/2022", file:"data_2022_07.js" },
+  { id:"n2_2022_12", label:"12/2022", file:"data_2022_12.js" },
+  { id:"n2_2021_12", label:"12/2021", file:"data_2021_12.js" }
+];
+
+/* ==== 2. KHO DỮ LIỆU + HÀM ĐĂNG KÝ (data file gọi hàm này) ==== */
+const DATA = {};
+window.JLPT_DATA = DATA;
+window.JLPT_REGISTER = function (exam) {
+  if (!exam || !exam.metadata || !exam.metadata.id) return;
+  DATA[exam.metadata.id] = exam;
+  EXAM_FILES.forEach(f => { if (f.id === exam.metadata.id) f.loaded = true; });
+  if (window.__APP_READY__) {
+    buildSelect();
+    if (state.examId === exam.metadata.id) { state.exam = exam; render(); }
+  }
+};
+
+const state = { examId:null, exam:null, tab:TABS[0], answers:{}, toggles:{} };
+
+/* ==== 3. NẠP FILE DỮ LIỆU ĐỘNG ==== */
+function injectScript(src){
+  return new Promise(resolve => {
+    const s = document.createElement("script");
+    s.src = src; s.async = false;
+    s.onload = () => resolve(true);
+    s.onerror = () => resolve(false);
+    document.head.appendChild(s);
+  });
+}
+async function loadAll(){
+  for (const f of EXAM_FILES){
+    if (DATA[f.id]) { f.loaded = true; continue; }
+    const ok = await injectScript(f.file);
+    if (ok && DATA[f.id]) f.loaded = true;
+  }
+  window.__APP_READY__ = true;
+  buildSelect();
+  const first = EXAM_FILES.find(f => f.loaded) || EXAM_FILES[0];
+  switchExam(first.id);
+}
+
+/* ==== 4. HELPERS ==== */
+const flat = exam => { const out=[]; exam.data.forEach(sec=>sec.questions.forEach(q=>out.push({sec,q}))); return out; };
+
+/* ==== 5. DROPDOWN ==== */
+function buildSelect(){
+  const sel = document.getElementById("examSelect");
+  const cur = state.examId;
+  sel.innerHTML = EXAM_FILES.map(f =>
+    `<option value="${f.id}">N2 — ${f.label}${f.loaded ? "" : "  (chưa có dữ liệu)"}</option>`
+  ).join("");
+  if (cur) sel.value = cur;
+}
+document.addEventListener("change", e => { if (e.target.id === "examSelect") switchExam(e.target.value); });
+
+/* ==== 6. CHUYỂN ĐỀ ==== */
+function switchExam(id){
+  document.getElementById("examSelect").value = id;
+  const exam = DATA[id];
+  if (!exam){ renderPastePanel(id); return; }
+  state.examId = id; state.exam = exam;
+  state.answers = {}; state.toggles = {}; state.tab = TABS[0];
+  document.getElementById("examTitle").textContent = exam.metadata.title || id;
+  render();
+}
+
+/* ==== 7. BẢNG "DÁN DỮ LIỆU" (khi thiếu file) ==== */
+function renderPastePanel(id){
+  const meta = EXAM_FILES.find(f => f.id === id) || { file:`data_${id}.js` };
+  state.exam = null; state.examId = null;
+  document.getElementById("examTitle").textContent = "Chưa có dữ liệu cho đề này";
+  document.getElementById("tabBar").innerHTML = "";
+  document.getElementById("listenNote").classList.add("hidden");
+  document.getElementById("tabContent").innerHTML = `
+    <div class="rounded-2xl bg-slate-800/40 border border-amber-400/30 p-5">
+      <h2 class="text-amber-300 font-bold mb-2">⚠️ Chưa nạp được <code>${meta.file}</code></h2>
+      <p class="text-sm text-slate-300 mb-3">Trình duyệt không đọc được file (hoặc file chưa tồn tại). Có 2 cách:</p>
+      <ol class="text-sm text-slate-300 list-decimal ml-5 space-y-1 mb-4">
+        <li>Đặt file <code>${meta.file}</code> cùng thư mục với <code>index.html</code>, rồi thêm
+            <code>&lt;script src="${meta.file}"&gt;&lt;/script&gt;</code> trước thẻ <code>&lt;script&gt;</code> chính.</li>
+        <li>Hoặc mở file data bằng Notepad → <b>copy toàn bộ</b> → dán vào ô dưới → bấm “Nạp dữ liệu”.</li>
+      </ol>
+      <textarea id="pasteBox" rows="8" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-xs font-mono text-slate-200"
+        placeholder="JLPT_REGISTER({ metadata:{ id:'${id}', label:'…', title:'…' }, data:[ … ] });"></textarea>
+      <button id="pasteBtn" class="mt-3 text-xs bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/40 text-amber-200 rounded-lg px-4 py-2 transition">▶ Nạp dữ liệu</button>
+    </div>`;
+  document.getElementById("pasteBtn").addEventListener("click", () => {
+    const txt = document.getElementById("pasteBox").value.trim();
+    if (!txt) return;
+    try { (0, eval)(txt); } catch (err) { alert("Lỗi cú pháp dữ liệu: " + err.message); return; }
+    buildSelect();
+    switchExam(id);
+  });
+}
+
+/* ==== 8. RENDER ==== */
+function renderTabs(){
+  const list = flat(state.exam);
+  const per = {}; TABS.forEach(t => per[t] = { total:0, done:0 });
+  list.forEach(({sec,q}) => { per[sec.tab].total++; if (state.answers[q.id] !== undefined) per[sec.tab].done++; });
+  document.getElementById("tabBar").innerHTML = TABS.map(t => {
+    const c = per[t], active = state.tab === t;
+    return `<button class="tab-btn px-3 py-2 rounded-xl border text-xs sm:text-sm font-medium flex items-center gap-2 ${active ? "active" : "border-slate-700/60 bg-slate-800/30 text-slate-300 hover:border-cyan-500/50"}">
+      <span>${t}</span><span class="cnt text-[10px] rounded-full px-1.5 py-0.5">${c.done}/${c.total}</span></button>`;
+  }).join("");
+  document.querySelectorAll("#tabBar .tab-btn").forEach((b,i) => b.addEventListener("click", () => { state.tab = TABS[i]; render(); }));
+}
+
+function qCard(sec, q, no){
+  const picked = state.answers[q.id];
+  const answered = picked !== undefined;
+  const hasKey = (q.answer !== null && q.answer !== undefined);
+  const isListen = sec.tab === "聴解";
+  const letters = LETTERS.slice(0, q.options.length);
+
+  const opts = q.options.map((opt, i) => {
+    let cls = "opt-btn w-full text-left rounded-xl border px-3 py-2.5 text-[13px] sm:text-sm flex items-start gap-3 ";
+    if (answered){
+      if (hasKey && i === q.answer) cls += "!border-emerald-400/70 !bg-emerald-500/10 text-emerald-100";
+      else if (i === picked) cls += "!border-rose-400/70 !bg-rose-500/10 text-rose-100";
+      else cls += "border-slate-700/50 bg-slate-800/20 text-slate-500";
+    } else cls += "border-slate-700/60 bg-slate-800/40";
+    const badge = (answered && hasKey && i === q.answer) ? "border-emerald-300 bg-emerald-400/20 text-emerald-200"
+      : (answered && i === picked) ? "border-rose-300 bg-rose-400/20 text-rose-200"
+      : "border-slate-600 bg-slate-800/60";
+    return `<button class="${cls}" data-act="answer" data-qid="${q.id}" data-opt="${i}" ${answered || !hasKey ? "disabled" : ""}>
+      <span class="w-6 h-6 shrink-0 rounded-lg border ${badge} flex items-center justify-center text-xs font-bold">${letters[i]}</span>
+      <span class="jpn leading-relaxed">${opt}</span></button>`;
+  }).join("");
+
+  const feedback = !answered ? ""
+    : (!hasKey ? `<div class="mt-3 text-sm font-semibold text-rose-300">⚠️ THIẾU DỮ LIỆU TRONG FILE (không có đáp án)</div>`
+      : (picked === q.answer
+        ? `<div class="mt-3 text-sm font-semibold text-emerald-300">✓ Đúng! (Đáp án: ${letters[q.answer]})</div>`
+        : `<div class="mt-3 text-sm font-semibold text-rose-300">✕ Sai. Đáp án đúng: ${letters[q.answer]}</div>`));
+
+  const open = !!state.toggles[q.id];
+  return `<div class="rounded-2xl bg-slate-800/30 border border-slate-700/50 p-4 backdrop-blur mb-4">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div class="text-[11px] font-bold text-amber-300/90 uppercase tracking-wider">${sec.section}
+        ${isListen ? `<span class="text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-2 py-0.5 ml-2">🎧 聴解</span>` : ""}</div>
+      <div class="text-[11px] text-slate-500">Câu ${no}</div>
+    </div>
+    ${q.passage ? `<div class="mt-3 rounded-xl bg-slate-900/60 border border-slate-700/50 p-3 text-[13px] leading-relaxed jpn max-h-72 overflow-y-auto">${q.passage}</div>` : ""}
+    ${isListen ? `<div class="mt-3 flex flex-wrap gap-2">
+        <button class="text-xs bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 rounded-lg px-3 py-1.5 transition" data-act="play" data-qid="${q.id}" ${q.audioUrl ? "" : "disabled"}>▶ Audio ${q.audioUrl ? "" : "(giả lập)"}</button>
+        <button class="text-xs bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/60 text-slate-200 rounded-lg px-3 py-1.5 transition" data-act="script" data-qid="${q.id}">📜 Script / Transcript</button>
+      </div>` : ""}
+    <div class="mt-3 text-[14px] sm:text-[15px] jpn leading-relaxed font-medium">${q.question}</div>
+    <div class="mt-3 space-y-2">${opts}</div>
+    ${feedback}
+    <div class="mt-3">
+      <button class="text-xs bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 text-amber-200 rounded-lg px-3 py-1.5 transition" data-act="toggle" data-qid="${q.id}">
+        ${open ? "▲ Ẩn" : "▼ Hiện"} Dịch &amp; Giải thích</button>
+    </div>
+    <div class="explain-box ${open ? "open" : ""}"><div class="explain-inner">
+      <div class="mt-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-[12.5px] leading-relaxed">
+        <div class="text-amber-300 font-semibold mb-1">🇻🇳 Dịch nghĩa</div>
+        <div class="text-slate-200">${q.translation || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
+        <div class="text-cyan-300 font-semibold mt-2 mb-1">💡 Giải thích</div>
+        <div class="text-slate-300">${q.explanation || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
+      </div>
+    </div></div>
+  </div>`;
+}
+
+function renderContent(){
+  const items = flat(state.exam).filter(x => x.sec.tab === state.tab);
+  const c = document.getElementById("tabContent");
+  document.getElementById("listenNote").classList.toggle("hidden", state.tab !== "聴解");
+  let html = "", last = null, no = 0;
+  items.forEach(({sec,q}) => {
+    if (last !== sec.section){
+      last = sec.section; no = 0;
+      html += `<div class="sticky top-[68px] z-10 rounded-xl bg-gradient-to-r from-slate-900/95 to-slate-800/80 backdrop-blur border border-slate-700/60 px-4 py-2.5 mb-4">
+        <h2 class="text-sm sm:text-base font-bold text-cyan-300">${sec.section}</h2>
+        <p class="text-[11px] text-slate-400 mt-0.5">${sec.instruction || ""}</p></div>`;
+    }
+    no++;
+    html += qCard(sec, q, no);
+  });
+  if (!items.length) html = `<p class="text-slate-400 text-sm">Đề này không có câu hỏi cho tab 「${state.tab}」.</p>`;
+  c.innerHTML = html;
+
+  c.querySelectorAll("[data-act='answer']").forEach(b => b.addEventListener("click", () => onAnswer(b.dataset.qid, +b.dataset.opt)));
+  c.querySelectorAll("[data-act='toggle']").forEach(b => b.addEventListener("click", () => { state.toggles[b.dataset.qid] = !state.toggles[b.dataset.qid]; render(); }));
+  c.querySelectorAll("[data-act='script']").forEach(b => b.addEventListener("click", () => { state.toggles[b.dataset.qid] = !state.toggles[b.dataset.qid]; render(); }));
+  c.querySelectorAll("[data-act='play']").forEach(b => b.addEventListener("click", () => fakePlay(b)));
+}
+
+function onAnswer(qid, opt){
+  if (state.answers[qid] !== undefined) return;
+  state.answers[qid] = opt;
+  render();
+}
+function fakePlay(btn){
+  const old = btn.textContent;
+  btn.textContent = "🔊 Đang phát…";
+  setTimeout(() => { btn.textContent = old; alert("⚠️ File đề không có file âm thanh. Hãy thêm audioUrl vào câu hỏi khi có audio thật."); }, 900);
+}
+
+function render(){
+  if (!state.exam) return;
+  renderTabs(); renderContent();
+  const list = flat(state.exam);
+  const done = list.filter(x => state.answers[x.q.id] !== undefined).length;
+  const correct = list.filter(x => state.answers[x.q.id] !== undefined && x.q.answer !== null && state.answers[x.q.id] === x.q.answer).length;
+  const pct = done ? Math.round(correct / done * 100) : 0;
+  document.getElementById("globalScore").innerHTML = `🏆 <b class="text-emerald-300">${correct}</b>/<span class="text-slate-300">${done}</span> · <span class="text-amber-300">${pct}%</span>`;
+  document.getElementById("prog").style.width = (list.length ? Math.round(done / list.length * 100) : 0) + "%";
+}
+
+/* ==== 9. KHỞI ĐỘNG ==== */
+document.getElementById("resetAll").addEventListener("click", () => {
+  if (state.exam && confirm("Đặt lại toàn bộ câu trả lời của đề hiện tại?")){ state.answers = {}; state.toggles = {}; render(); }
+});
+document.addEventListener("DOMContentLoaded", loadAll);
+</script>
+</body>
+</html>
