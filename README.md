@@ -15,7 +15,16 @@ LJPT_test/
 │   ├── data_2022_07.js   # JLPT N2 — 2022年7月 (07/2022)
 │   ├── data_2021_12.js   # JLPT N2 — 2021年12月 (12/2021)
 │   └── data_2021_07.js   # JLPT N2 — 2021年7月 (07/2021)
-└── pdf_data/             # Source exam PDFs (not read by the app)
+├── tools/                # Bộ công cụ tạo/kiểm tra dữ liệu (xem tools/README.md)
+│   ├── extract_pdf.py    # PDF -> ảnh từng trang
+│   ├── downscale.py      # thu nhỏ ảnh cho OCR
+│   ├── ocr_pages.py      # OCR song song nhiều worker
+│   ├── crop.ps1          # cắt & phóng to vùng ảnh để đọc bằng mắt
+│   ├── brackets.py       # kiểm tra cân bằng ngoặc của data_*.js
+│   ├── validate_data.py  # kiểm tra cấu trúc + đối chiếu đáp án
+│   └── keys/             # đáp án chuẩn (1-based) & baseline
+├── pdf_data/             # Source exam PDFs (not read by the app)
+└── ADD_EXAM.md           # Prompt mẫu: gõ tên đề -> thêm đề mới
 ```
 
 ## Usage
@@ -49,6 +58,18 @@ Tabs: `文字・語彙` / `用法` / `文法` / `読解` / `聴解`.
 
 1. Create `N2/data_YYYY_MM.js` in the format above.
 2. Add one line to `EXAM_FILES` inside `N2/index.html`.
+
+Xem `ADD_EXAM.md` (prompt mẫu: chỉ cần gõ tên đề) và `tools/README.md` (quy trình
+trích ảnh → OCR → đối chiếu 正解表 → kiểm tra bằng `validate_data.py`).
+
+## Kiểm tra dữ liệu
+
+```powershell
+python tools\brackets.py     N2\data_2021_07.js
+python tools\validate_data.py N2\data_2021_07.js tools\keys\2021_07.json
+```
+
+`exit 0` + `LOI CUNG (0)` = file hợp lệ và đáp án khớp bảng 正解表.
 
 ## Requirements
 
