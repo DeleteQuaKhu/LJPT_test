@@ -14,7 +14,8 @@ LJPT_test/
 │   ├── data_2022_12.js   # JLPT N2 — 2022年12月 (12/2022)
 │   ├── data_2022_07.js   # JLPT N2 — 2022年7月 (07/2022)
 │   ├── data_2021_12.js   # JLPT N2 — 2021年12月 (12/2021)
-│   └── data_2021_07.js   # JLPT N2 — 2021年7月 (07/2021)
+│   ├── data_2021_07.js   # JLPT N2 — 2021年7月 (07/2021)
+│   └── data_2020_12.js   # JLPT N2 — 2020年12月 (12/2020)
 ├── tools/                # Bộ công cụ tạo/kiểm tra dữ liệu (xem tools/README.md)
 │   ├── extract_pdf.py    # PDF -> ảnh từng trang
 │   ├── downscale.py      # thu nhỏ ảnh cho OCR

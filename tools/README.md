@@ -55,6 +55,7 @@ Thêm `--snapshot out.json` để ghi lại đáp án hiện có, `--report out.
 | 2022_12 | 19 | 101 | 3 | thiếu `answer` ở 聴解問題5 |
 | 2023_07 | 19 | 96 | 3 | thiếu `answer` ở 聴解問題5; thiếu câu |
 | 2023_12 | 19 | 100 | 2 | thiếu `answer` ở 聴解問題5 |
+| 2020_12 | 19 | 102 | **0** | Đủ 100%: có 問題11 (9 câu) + toàn bộ 聴解 (問題5 = 3 câu); đáp án đã đối chiếu 正解表 |
 
 ## Môi trường
 
