@@ -27,6 +27,9 @@
   table.info-tbl{ border-collapse:collapse; width:100%; }
   table.info-tbl th, table.info-tbl td{ border:1px solid #334155; padding:.5rem .75rem; font-size:.85rem; }
   table.info-tbl th{ background:#1e293b; color:#fbbf24; text-align:left; }
+  ruby{ ruby-align:center; }
+  rt{ font-family:'Noto Sans JP',sans-serif; font-size:.55em; line-height:1.1; color:#7dd3fc; }
+  body[data-furi="off"] rt{ display:none; }
 </style>
 </head>
 <body class="min-h-screen text-slate-100 antialiased">
@@ -45,6 +48,7 @@
       <select id="examSelect" class="bg-slate-800/80 border border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-400 cursor-pointer"></select>
       <span id="globalScore" class="text-xs bg-slate-800/80 border border-slate-700 rounded-full px-3 py-1.5">🏆 0/0 · 0%</span>
       <button id="resetAll" class="text-xs bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-lg px-3 py-1.5 transition">↺ Đặt lại</button>
+      <button id="furiToggle" aria-pressed="true" title="Bật/tắt furigana ở phần Giải thích" class="text-xs bg-slate-800/80 hover:bg-slate-700 border border-slate-700 rounded-lg px-3 py-1.5 transition">ふりがな ON</button>
     </div>
   </div>
   <div class="h-[3px] bg-slate-800"><div id="prog" class="h-full bg-gradient-to-r from-amber-400 to-cyan-400" style="width:0%"></div></div>
@@ -81,6 +85,12 @@
      <script src="data_2018_07.js"></script>
      ============================================================ -->
 
+<!-- Furigana cho phần Giải thích: furi-dict.js (bảng đọc, sinh tự động) +
+     furi-engine.js (hàm toRuby). Nếu 2 file này không nạp được (vd. chạy
+     file:// bị chặn) thì phần giải thích chỉ hiển thị như cũ. -->
+<script src="furi-dict.js"></script>
+<script src="furi-engine.js"></script>
+
 <script>
 /* =========================================================================
    JLPT N2 QUIZ — CORE (index.html)
@@ -93,6 +103,19 @@
 
 const TABS = ["文字・語彙","用法","文法","読解","聴解"];
 const LETTERS = ["①","②","③","④"];
+
+/* ==== FURIGANA cho phần Giải thích ====
+   furi-dict.js (bảng đọc) + furi-engine.js (toRuby) sinh tự động, xem README.
+   Nếu 2 file không nạp được thì furi() trả về nguyên văn (không lỗi). */
+function furi(s){
+  return (typeof toRuby === "function") ? toRuby(s) : (s || "");
+}
+function setFuri(on){
+  document.body.dataset.furi = on ? "on" : "off";
+  const b = document.getElementById("furiToggle");
+  if (b){ b.textContent = "ふりがな " + (on ? "ON" : "OFF"); b.setAttribute("aria-pressed", on ? "true" : "false"); }
+  try { localStorage.setItem("n2furi", on ? "on" : "off"); } catch(e){}
+}
 
 /* ==== 1. DANH SÁCH ĐỀ THI (thêm đề mới ở đây) ==== */
 const EXAM_FILES = [
@@ -265,7 +288,7 @@ function qCard(sec, q, no){
         <div class="text-amber-300 font-semibold mb-1">🇻🇳 Dịch nghĩa</div>
         <div class="text-slate-200">${q.translation || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
         <div class="text-cyan-300 font-semibold mt-2 mb-1">💡 Giải thích</div>
-        <div class="text-slate-300">${q.explanation || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
+        <div class="text-slate-300">${furi(q.explanation) || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
       </div>
     </div></div>
   </div>`;
@@ -321,6 +344,9 @@ function render(){
 document.getElementById("resetAll").addEventListener("click", () => {
   if (state.exam && confirm("Đặt lại toàn bộ câu trả lời của đề hiện tại?")){ state.answers = {}; state.toggles = {}; render(); }
 });
+const FURI_ON = (() => { try { return localStorage.getItem("n2furi") !== "off"; } catch(e){ return true; } })();
+setFuri(FURI_ON);
+document.getElementById("furiToggle").addEventListener("click", () => setFuri(document.body.dataset.furi === "off"));
 document.addEventListener("DOMContentLoaded", loadAll);
 </script>
 </body>

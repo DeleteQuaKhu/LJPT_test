@@ -1,0 +1,90 @@
+[
+ {
+  "ri": 212,
+  "file": "data_2019_7.js",
+  "id": "a2-1",
+  "start": 62,
+  "end": 64,
+  "surface": "習味"
+ },
+ {
+  "ri": 316,
+  "file": "data_2020_12.js",
+  "id": "a2-2",
+  "start": 29,
+  "end": 31,
+  "surface": "帰勢"
+ },
+ {
+  "ri": 316,
+  "file": "data_2020_12.js",
+  "id": "a2-2",
+  "start": 32,
+  "end": 34,
+  "surface": "帰斉"
+ },
+ {
+  "ri": 316,
+  "file": "data_2020_12.js",
+  "id": "a2-2",
+  "start": 35,
+  "end": 37,
+  "surface": "帰成"
+ },
+ {
+  "ri": 318,
+  "file": "data_2020_12.js",
+  "id": "a2-4",
+  "start": 61,
+  "end": 62,
+  "surface": "栈"
+ },
+ {
+  "ri": 318,
+  "file": "data_2020_12.js",
+  "id": "a2-4",
+  "start": 64,
+  "end": 65,
+  "surface": "旋"
+ },
+ {
+  "ri": 326,
+  "file": "data_2020_12.js",
+  "id": "a4-4",
+  "start": 64,
+  "end": 65,
+  "surface": "别"
+ },
+ {
+  "ri": 823,
+  "file": "data_2023_07.js",
+  "id": "a2-2",
+  "start": 34,
+  "end": 35,
+  "surface": "祉"
+ },
+ {
+  "ri": 826,
+  "file": "data_2023_07.js",
+  "id": "a2-5",
+  "start": 48,
+  "end": 50,
+  "surface": "削失"
+ },
+ {
+  "ri": 919,
+  "file": "data_2023_12.js",
+  "id": "d2-2",
+  "start": 36,
+  "end": 37,
+  "surface": "習"
+ },
+ {
+  "ri": 919,
+  "file": "data_2023_12.js",
+  "id": "d2-2",
+  "start": 38,
+  "end": 40,
+  "surface": "演修"
+ }
+]

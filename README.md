@@ -19,7 +19,9 @@ LJPT_test/
 │   ├── data_2020_12.js   # JLPT N2 — 2020年12月 (12/2020)
 │   ├── data_2019_07.js   # JLPT N2 — 2019年7月 (07/2019)
 │   ├── data_2019_12.js   # JLPT N2 — 2019年12月 (12/2019)
-│   └── data_2018_07.js   # JLPT N2 — 2018年7月 (07/2018)
+│   ├── data_2018_07.js   # JLPT N2 — 2018年7月 (07/2018)
+│   ├── furi-dict.js      # Bảng đọc furigana cho phần Giải thích (sinh tự động)
+│   └── furi-engine.js    # toRuby() — bọc <ruby> cho phần Giải thích
 ├── tools/                # Bộ công cụ tạo/kiểm tra dữ liệu (xem tools/README.md)
 │   ├── extract_pdf.py    # PDF -> ảnh từng trang
 │   ├── downscale.py      # thu nhỏ ảnh cho OCR
@@ -27,6 +29,7 @@ LJPT_test/
 │   ├── crop.ps1          # cắt & phóng to vùng ảnh để đọc bằng mắt
 │   ├── brackets.py       # kiểm tra cân bằng ngoặc của data_*.js
 │   ├── validate_data.py  # kiểm tra cấu trúc + đối chiếu đáp án
+│   ├── furi/             # sinh furigana cho phần Giải thích (xem tools/furi/README.md)
 │   └── keys/             # đáp án chuẩn (1-based) & baseline
 ├── pdf_data/             # Source exam PDFs (not read by the app)
 └── ADD_EXAM.md           # Prompt mẫu: gõ tên đề -> thêm đề mới
@@ -58,6 +61,24 @@ JLPT_REGISTER({
 ```
 
 Tabs: `文字・語彙` / `用法` / `文法` / `読解` / `聴解`.
+
+## Furigana (phần Giải thích)
+
+App nạp `N2/furi-dict.js` (bảng đọc) + `N2/furi-engine.js` (`toRuby()`) và chú
+thích kanji **chỉ trong khối 💡 Giải thích**:
+
+```js
+<div class="text-slate-300">${furi(q.explanation) || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
+```
+
+* Nút **ふりがな ON/OFF** ở header để tắt/mở (lưu `localStorage["n2furi"]`).
+* Kanji cố ý không chú thích (từ một kanji, dạng chữ Hán UniDic không đọc được)
+  giữ nguyên trần — xem `ignored.json`.
+* Bảng đọc **sinh tự động**, đừng sửa tay: `python tools/furi/build_dict.py`
+  → `node tools/furi/check.mjs` → `python tools/furi/emit_js.py N2`
+  → `node tools/furi/check_repo.mjs N2` (chi tiết: `tools/furi/README.md`).
+* Nếu 2 file trên không nạp được (vd. `file://` bị chặn) thì giải thích vẫn hiển
+  thị nguyên văn — `furi()` tự kiểm tra `typeof toRuby`.
 
 ## Adding a new exam
 
