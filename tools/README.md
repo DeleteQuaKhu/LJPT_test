@@ -10,6 +10,7 @@ Dùng khi thêm một đề JLPT N2 mới vào `N2/data_YYYY_MM.js` từ PDF sca
 | `crop.ps1` | Cắt & phóng to một vùng của trang scan để **đọc bằng mắt** (xác minh OCR / đọc bảng 正解表) |
 | `brackets.py` | Kiểm tra cân bằng ngoặc `{}`/`[]` và chuỗi trích dẫn của file `data_*.js` |
 | `validate_data.py` | Kiểm tra cấu trúc + **đối chiếu đáp án** với file key (1-based) |
+| `furi/` | Sinh & kiểm tra furigana cho **mọi đoạn tiếng Nhật** trong đề (問題文/質問/選択肢/訳/解説) — xem `tools/furi/README.md` |
 | `keys/2021_07.json` | Đáp án chuẩn đọc từ bảng 正解表 của `pdf_data/2021_7.pdf` |
 | `keys/*.snapshot.json` | Baseline sinh từ chính file data cũ (để sau này phát hiện thay đổi ngoài ý muốn) |
 
@@ -32,6 +33,13 @@ powershell -File tools\crop.ps1 "$env:TEMP\pg\p17.png" 800 1200 120 2280 2.0
 # 4) Kiểm tra file dữ liệu vừa soạn
 python tools/brackets.py     N2\data_2024_07.js
 python tools/validate_data.py N2\data_2024_07.js tools\keys\2024_07.json
+
+# 5) Thêm/sửa đề xong -> sinh lại furigana (chi tiết: tools/furi/README.md)
+node   tools\furi\dump.mjs .
+python tools\furi\build_dict.py
+node   tools\furi\check.mjs
+python tools\furi\emit_js.py N2
+node   tools\furi\check_repo.mjs N2
 ```
 
 `validate_data.py` trả về **exit 0** khi không có lỗi cứng; in ra danh sách
