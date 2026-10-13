@@ -3,8 +3,11 @@
 import fs from 'node:fs';
 
 const FURI = JSON.parse(fs.readFileSync('dict.json', 'utf8'));
+const FURI_FIX = fs.existsSync('fix_text.json')
+  ? JSON.parse(fs.readFileSync('fix_text.json', 'utf8')) : {};
 const engine = fs.readFileSync('furi-engine.js', 'utf8');
-const { toRuby, rubify, FURI_MISS } = new Function('FURI', engine + '\nreturn {toRuby, rubify, FURI_MISS};')(FURI);
+const { toRuby, rubify, FURI_MISS } = new Function('FURI', 'FURI_FIX', engine +
+  '\nreturn {toRuby, rubify, FURI_MISS};')(FURI, FURI_FIX);
 
 const expected = fs.readFileSync('expected.jsonl', 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
 

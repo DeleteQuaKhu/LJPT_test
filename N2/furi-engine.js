@@ -1,6 +1,8 @@
 /* ===== FURIGANA ENGINE =====
    Sinh chú thích furigana (<ruby>) phía trên mỗi kanji, dùng bảng FURI
-   (nạp trước bằng furi-dict.js). Nếu bảng chưa có thì trả về nguyên văn.
+   (nạp trước bằng furi-dict.js) và bảng ngoại lệ FURI_FIX (furi-fix.js, tuỳ chọn:
+   vài đoạn text mà bảng đọc không thể phân biệt được — xem tools/furi/README.md).
+   Nếu bảng chưa có thì trả về nguyên văn.
    Bản dùng trong app: N2/furi-engine.js — sinh tự động từ furi-work/. */
 var KANJI_RE=/[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3005]/;
 var isKanji=ch=>KANJI_RE.test(ch);
@@ -8,6 +10,7 @@ var FURI_MISS=[];
 var FURI_MAX=1;
 if(typeof FURI!=='undefined')
   for(const k in FURI) if(k.length>FURI_MAX) FURI_MAX=k.length;
+var FIXTEXT=(typeof FURI_FIX!=='undefined')?FURI_FIX:{};
 
 /* core: chuỗi chỉ gồm kanji/kana (kết thúc bằng kanji); rd: cách đọc của core */
 
@@ -53,10 +56,21 @@ function toRuby(text){
   if(text==null) return '';
   const s=String(text), n=s.length;
   if(typeof FURI==='undefined') return s;      // chưa nạp bảng đọc -> giữ nguyên
-  let out='',i=0;
+  const fx=FIXTEXT[s]||null;                  // ngoại lệ đúng đoạn text này
+  const fpos=fx?Object.keys(fx).map(Number).sort((a,b)=>a-b):null;
+  let out='',i=0,fi=0;
   while(i<n){
+    if(fx){
+      while(fi<fpos.length&&fpos[fi]<i) fi++;
+      if(fpos[fi]===i){
+        const base=fx[i][0], rd=fx[i][1];
+        out+=rd?rubify(base,rd):base;     // cắt ruby y như khoá trong bảng đọc
+        i+=base.length; fi++; continue;
+      }
+    }
     let hit=null;
-    const maxL=Math.min(FURI_MAX,n-i);
+    const lim=fx&&fi<fpos.length?(fpos[fi]-i):n-i;   // không khoá nào vắt qua ngoại lệ
+    const maxL=Math.min(FURI_MAX,lim);
     for(let L=maxL;L>=1;L--){
       const cand=s.substr(i,L);
       if(FURI[cand]!==undefined){ hit=cand; break; }

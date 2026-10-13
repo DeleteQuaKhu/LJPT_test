@@ -28,7 +28,7 @@
   table.info-tbl th, table.info-tbl td{ border:1px solid #334155; padding:.5rem .75rem; font-size:.85rem; }
   table.info-tbl th{ background:#1e293b; color:#fbbf24; text-align:left; }
   ruby{ ruby-align:center; }
-  rt{ font-family:'Noto Sans JP',sans-serif; font-size:.55em; line-height:1.1; color:#7dd3fc; }
+  rt{ font-family:'Noto Sans JP',sans-serif; font-size:.6em; line-height:1.1; color:#7dd3fc; }
   body[data-furi="off"] rt{ display:none; }
 </style>
 </head>
@@ -85,10 +85,13 @@
      <script src="data_2018_07.js"></script>
      ============================================================ -->
 
-<!-- Furigana cho phần Giải thích: furi-dict.js (bảng đọc, sinh tự động) +
-     furi-engine.js (hàm toRuby). Nếu 2 file này không nạp được (vd. chạy
-     file:// bị chặn) thì phần giải thích chỉ hiển thị như cũ. -->
+<!-- Furigana: furi-dict.js (bảng đọc, sinh tự động) + furi-fix.js (ngoại lệ cho vài
+     đoạn câu mà bảng đọc không phân biệt được) + furi-engine.js (hàm toRuby).
+     Nếu các file này không nạp được (vd. chạy file:// bị chặn) thì nội dung chỉ
+     hiển thị như cũ. -->
 <script src="furi-dict.js"></script>
+<script src="furi-fix.js"></script>
+
 <script src="furi-engine.js"></script>
 
 <script>
@@ -255,7 +258,7 @@ function qCard(sec, q, no){
       : "border-slate-600 bg-slate-800/60";
     return `<button class="${cls}" data-act="answer" data-qid="${q.id}" data-opt="${i}" ${answered || !hasKey ? "disabled" : ""}>
       <span class="w-6 h-6 shrink-0 rounded-lg border ${badge} flex items-center justify-center text-xs font-bold">${letters[i]}</span>
-      <span class="jpn leading-relaxed">${opt}</span></button>`;
+      <span class="jpn leading-relaxed">${furi(opt)}</span></button>`;
   }).join("");
 
   const feedback = !answered ? ""
@@ -267,16 +270,16 @@ function qCard(sec, q, no){
   const open = !!state.toggles[q.id];
   return `<div class="rounded-2xl bg-slate-800/30 border border-slate-700/50 p-4 backdrop-blur mb-4">
     <div class="flex items-start justify-between gap-3 flex-wrap">
-      <div class="text-[11px] font-bold text-amber-300/90 uppercase tracking-wider">${sec.section}
+      <div class="text-[11px] font-bold text-amber-300/90 uppercase tracking-wider">${furi(sec.section)}
         ${isListen ? `<span class="text-[10px] text-cyan-300 bg-cyan-500/10 border border-cyan-500/30 rounded-full px-2 py-0.5 ml-2">🎧 聴解</span>` : ""}</div>
       <div class="text-[11px] text-slate-500">Câu ${no}</div>
     </div>
-    ${q.passage ? `<div class="mt-3 rounded-xl bg-slate-900/60 border border-slate-700/50 p-3 text-[13px] leading-relaxed jpn max-h-72 overflow-y-auto">${q.passage}</div>` : ""}
+    ${q.passage ? `<div class="mt-3 rounded-xl bg-slate-900/60 border border-slate-700/50 p-3 text-[13px] leading-relaxed jpn max-h-72 overflow-y-auto">${furi(q.passage)}</div>` : ""}
     ${isListen ? `<div class="mt-3 flex flex-wrap gap-2">
         <button class="text-xs bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-200 rounded-lg px-3 py-1.5 transition" data-act="play" data-qid="${q.id}" ${q.audioUrl ? "" : "disabled"}>▶ Audio ${q.audioUrl ? "" : "(giả lập)"}</button>
         <button class="text-xs bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/60 text-slate-200 rounded-lg px-3 py-1.5 transition" data-act="script" data-qid="${q.id}">📜 Script / Transcript</button>
       </div>` : ""}
-    <div class="mt-3 text-[14px] sm:text-[15px] jpn leading-relaxed font-medium">${q.question}</div>
+    <div class="mt-3 text-[14px] sm:text-[15px] jpn leading-relaxed font-medium">${furi(q.question)}</div>
     <div class="mt-3 space-y-2">${opts}</div>
     ${feedback}
     <div class="mt-3">
@@ -286,7 +289,7 @@ function qCard(sec, q, no){
     <div class="explain-box ${open ? "open" : ""}"><div class="explain-inner">
       <div class="mt-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-[12.5px] leading-relaxed">
         <div class="text-amber-300 font-semibold mb-1">🇻🇳 Dịch nghĩa</div>
-        <div class="text-slate-200">${q.translation || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
+        <div class="text-slate-200">${furi(q.translation) || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
         <div class="text-cyan-300 font-semibold mt-2 mb-1">💡 Giải thích</div>
         <div class="text-slate-300">${furi(q.explanation) || "⚠️ THIẾU DỮ LIỆU TRONG FILE"}</div>
       </div>
@@ -303,8 +306,8 @@ function renderContent(){
     if (last !== sec.section){
       last = sec.section; no = 0;
       html += `<div class="sticky top-[68px] z-10 rounded-xl bg-gradient-to-r from-slate-900/95 to-slate-800/80 backdrop-blur border border-slate-700/60 px-4 py-2.5 mb-4">
-        <h2 class="text-sm sm:text-base font-bold text-cyan-300">${sec.section}</h2>
-        <p class="text-[11px] text-slate-400 mt-0.5">${sec.instruction || ""}</p></div>`;
+        <h2 class="text-sm sm:text-base font-bold text-cyan-300">${furi(sec.section)}</h2>
+        <p class="text-[11px] text-slate-400 mt-0.5">${furi(sec.instruction) || ""}</p></div>`;
     }
     no++;
     html += qCard(sec, q, no);

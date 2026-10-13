@@ -25,3 +25,5 @@ tools/furi/rules.txt
 tools/furi/check.txt
 tools/furi/miss.txt
 tools/furi/check_repo.txt
+tools/furi/texts.jsonl
+tools/furi/units_cache.json
