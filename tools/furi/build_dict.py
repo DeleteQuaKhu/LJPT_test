@@ -22,6 +22,7 @@ KANJI = re.compile(r'^[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3005]+$')
 HAS_KANJI = re.compile(r'[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3005]')
 KANJI_CH = re.compile(r'[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3005]')
 KANA_CH = re.compile(r'[\u3041-\u3096\u30A1-\u30F6\u30FC]')
+KANA_ONLY = re.compile(r'^[\u3041-\u3096\u30A1-\u30F6\u30FC]+$')
 PREFIX_OK = re.compile(r'[\u3041-\u3096\u30A1-\u30F6\u30FC0-9０-９]')
 
 OVERRIDE = json.load(open('override.json', encoding='utf-8')) if os.path.exists('override.json') else {}
@@ -216,18 +217,24 @@ def rubify(key, reading):
                 idx = rd.find(txt, pos)
                 if idx >= 0:
                     pos = idx + len(txt)
+                elif KANA_ONLY.match(txt):     # vd. ヶ trong ヶ月 (đọc かげつ)
+                    pos += len(txt)            # -> giả định mỗi ký tự kana ăn 1 mora
             out.append(('lit', txt))
             continue
         nxt = segs[i + 1] if i + 1 < len(segs) else None
         if nxt and nxt[0] == 'k':
-            idx = rd.find(nxt[1], pos)
+            nt = nxt[1]
+            idx = rd.find(nt, pos)
             if idx == pos:
-                alt = rd.find(nxt[1], pos + 1)
+                alt = rd.find(nt, pos + 1)
                 if alt >= 0:
                     idx = alt
             if idx >= 0:
                 r = rd[pos:idx]
-                pos = idx + len(nxt[1])
+                pos = idx + len(nt)
+            elif KANA_ONLY.match(nt):
+                r = rd[pos:pos + len(nt)]
+                pos = min(pos + len(nt), len(rd))
             else:
                 r = rd[pos:]
                 pos = len(rd)
@@ -581,6 +588,31 @@ if bad or misses:
     print('!! sau khi ghim ngoại lệ vẫn còn %d câu lệch, %d kanji thiếu' % (len(bad), len(misses)))
 if baked_new:
     print('> ghim thêm %d ngoại lệ theo đoạn text (xem fix_text.json / rules.txt)' % len(baked_new))
+
+# dọn ngoại lệ không còn cần: bỏ thử từng cái, nếu vẫn 0 lệch thì không ghim nữa
+pruned = []
+for _t in list(FIXTEXT):
+    if _t not in {r['text'] for r in rows}:            # đoạn đã đổi/không còn -> bỏ
+        pruned.append((_t, '-', ('(đoạn không còn trong corpus)', '')))
+        del FIXTEXT[_t]
+        continue
+    for _p in list(FIXTEXT[_t]):
+        _save = FIXTEXT[_t].pop(_p)
+        if not FIXTEXT[_t]:
+            del FIXTEXT[_t]
+        d, rules, unresolved, holder = build(levels)
+        b2, m2, _ = check(d)
+        if b2 or m2:                                   # còn cần -> ghim lại
+            FIXTEXT.setdefault(_t, {})[_p] = _save
+        else:
+            pruned.append((_t, _p, _save))
+            bad, misses = b2, m2
+d, rules, unresolved, holder = build(levels)
+bad, misses, _ = check(d)
+if bad or misses:
+    print('!! sau khi dọn ngoại lệ còn %d câu lệch, %d kanji thiếu' % (len(bad), len(misses)))
+if pruned:
+    print('> bỏ %d ngoại lệ không còn cần (bảng đọc đã tự đúng)' % len(pruned))
 with open('fix_text.json', 'w', encoding='utf-8') as f:
     json.dump({_t: {str(k): list(v) for k, v in sorted(m.items())}
                for _t, m in sorted(FIXTEXT.items())}, f, ensure_ascii=False, indent=1)

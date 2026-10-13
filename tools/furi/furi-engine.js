@@ -5,6 +5,7 @@
    Nếu bảng chưa có thì trả về nguyên văn.
    Bản dùng trong app: N2/furi-engine.js — sinh tự động từ furi-work/. */
 var KANJI_RE=/[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\u3005]/;
+var KANA_RE=/^[\u3041-\u3096\u30A1-\u30F6\u30FC]+$/;
 var isKanji=ch=>KANJI_RE.test(ch);
 var FURI_MISS=[];
 var FURI_MAX=1;
@@ -27,7 +28,11 @@ function rubifyCore(core,rd){
   for(let i=0;i<segs.length;i++){
     const s=segs[i];
     if(s.t==='k'){
-      if(i===0){ const idx=rd.indexOf(s.text,pos); if(idx>=0) pos=idx+s.text.length; }
+      if(i===0){
+        const idx=rd.indexOf(s.text,pos);
+        if(idx>=0) pos=idx+s.text.length;
+        else if(KANA_RE.test(s.text)) pos+=s.text.length;   // ヶ trong ヶ月 (đọc かげつ)
+      }
       out+=s.text;
       continue;
     }
@@ -37,6 +42,7 @@ function rubifyCore(core,rd){
       let idx=rd.indexOf(nx.text,pos);
       if(idx===pos){ const alt=rd.indexOf(nx.text,pos+1); if(alt>=0) idx=alt; }
       if(idx>=0){ r=rd.slice(pos,idx); pos=idx+nx.text.length; }
+      else if(KANA_RE.test(nx.text)){ r=rd.slice(pos,pos+nx.text.length); pos=Math.min(pos+nx.text.length,rd.length); }
       else { r=rd.slice(pos); pos=rd.length; }
     } else { r=rd.slice(pos); pos=rd.length; }
     if(!r){ out+=s.text; continue; }        // không có cách đọc -> để trần
